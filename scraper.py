@@ -2,7 +2,9 @@ import schedule
 import requests
 from bs4 import BeautifulSoup
 
-last_message = 2
+message_details = {"user1":
+                       {"SGBIGPURCHASES": 2}
+                   }
 
 
 def base_length(group_name):
@@ -12,7 +14,11 @@ def base_length(group_name):
     return len(html)
 
 
-def scrape(group_name, last_message):
+def scrape(message_details):
+    for i in message_details:
+        for key, value in message_details[i].items():
+            group_name = key
+            last_message = value
     while True:
         url = "https://t.me/" + group_name + "/" + str(last_message)
         response = requests.get(url)
@@ -29,6 +35,7 @@ def scrape(group_name, last_message):
             print(message)
             # print(type(message))
             last_message += 1
+
         else:
             print("hello")
             return last_message
@@ -36,17 +43,19 @@ def scrape(group_name, last_message):
 
 THRESHOLD = base_length("SGBIGPURCHASES")
 
-print(last_message)
+for i in message_details:
+    for key, value in message_details[i].items():
+        print(value)
 
-last_message = scrape("SGBIGPURCHASES", last_message)
+last_message = scrape(message_details)
 
-schedule.every(5).seconds.do(scrape, "SGBIGPURCHASES", last_message)
+schedule.every(5).seconds.do(scrape, message_details)
 
-last_message = scrape("SGBIGPURCHASES", last_message)
+last_message = scrape(message_details)
 
-print(last_message)
+for i in message_details:
+    for key, value in message_details[i].items():
+        print(value)
 
 while True:
     schedule.run_pending()
-
-print(list(message_details.keys())[0])
