@@ -2,9 +2,9 @@ import schedule
 import requests
 from bs4 import BeautifulSoup
 
-message_details = {"user1":
-                       {"SGBIGPURCHASES": 2}
-                   }
+#message_details = {"user1":
+                       #{"SGBIGPURCHASES": 2}
+                  # }
 
 # to retrieve initial source code length
 def get_html(group_name, number):
@@ -27,14 +27,30 @@ def scrape(message_details):
   for i in message_details:
       for key, value in message_details[i].items():
           group_name = key
+          THRESHOLD = len(get_html(group_name, 1))
           last_message = value
-          message = poll(message_details, i, group_name, last_message)
+          message = poll(message_details, i, group_name, last_message, THRESHOLD)
           while (message != 0):
-            message = poll(message_details, i, group_name, message_details[i][group_name])
+            message = poll(message_details, i, group_name, message_details[i][group_name], THRESHOLD)
           return get_msg(get_html(group_name, message_details[i][group_name]- 1))
       
 
-def poll(message_details, user, group_name, number):
+def get_update(message_details, previous):
+  print("entered update")
+  msg_list=[]
+  for i in message_details:
+      for key, value in message_details[i].items():
+          group_name = key
+          THRESHOLD = len(get_html(group_name, 1))
+          last_message = value
+          message = poll(message_details, i, group_name, last_message, THRESHOLD)
+          while (msg_list != 0):
+            msg_list.append(poll(message_details, i, group_name, message_details[i][group_name], THRESHOLD))
+
+          msg_list.pop()
+          return msg_list
+
+def poll(message_details, user, group_name, number, THRESHOLD):
   html = get_html(group_name, number)
   
   if (len(html) - THRESHOLD >= 2000): #means valid message
@@ -59,13 +75,13 @@ def poll(message_details, user, group_name, number):
     return 0
 
 
-THRESHOLD = len(get_html("SGBIGPURCHASES", 1))
+#THRESHOLD = len(get_html("SGBIGPURCHASES", 1))
 
-schedule.every(5).seconds.do(scrape, message_details)
+#schedule.every(5).seconds.do(scrape, message_details)
 
-last_message = scrape(message_details)
+#last_message = scrape(message_details)
 
-while True:
-  schedule.run_pending()
+#while True:
+  #schedule.run_pending()
   #print(last_message)
 
