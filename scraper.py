@@ -13,49 +13,53 @@ def get_html(group_name, number):
     html = response.text
     return html
 
+# to retrieve message from html
+def get_msg(html):
+  soup = BeautifulSoup(html, "html.parser")
+  message = str(soup.select_one("meta[property=\"og:description\"]"))
+  # removes first 15 char, last 29
+  message = message[15:-29]
+  return message
+
 # to retrieve actual content
 def scrape(message_details):
-    for i in message_details:
-        for key, value in message_details[i].items():
-            group_name = key
-            last_message = value
-            return poll(message_details, i, group_name, last_message)
+  print("entered scrape")
+  for i in message_details:
+      for key, value in message_details[i].items():
+          group_name = key
+          last_message = value
+          message = poll(message_details, i, group_name, last_message)
+          while (message != 0):
+            message = poll(message_details, i, group_name, message_details[i][group_name])
+          return get_msg(get_html(group_name, message_details[i][group_name]- 1))
+      
 
-def poll(message_details, i, group_name, last_message):
-  while True:
-    html = get_html(group_name, last_message)
-    if (len(html) - THRESHOLD >= 2000):
-        soup = BeautifulSoup(html, "html.parser")
+def poll(message_details, user, group_name, number):
+  html = get_html(group_name, number)
+  
+  if (len(html) - THRESHOLD >= 2000): #means valid message
+    print(number," is valid")
+    number += 1
+    message_details[user][group_name] = number
+    # format content and return
+    return get_msg(html)
 
-        # to print message content
-        message = str(soup.select_one("meta[property=\"og:description\"]"))
-        # removes first 15 char, last 29
-        message = message[15:-29]
-
-        print(message)
-        # print(type(message))
-        last_message += 1
-        print("last message 39")
-        print(last_message)
-        # INCREMENT BACK INTO DICTIONARY NOT DONE
-    else:
-      for j in range(5):
-        if (len(get_html(group_name, last_message + j + 1)) - THRESHOLD < 2000):
-          print("checking last_message +"+ str(j+1))
-          pass
-        else: #to enter this - a message must exist
-          # this will be an actual message, hence update last_message
-          last_message = last_message + j + 1
-          message_details[i][group_name] = last_message 
-          print("scan complete, returning latest number")
-          return last_message
-      return last_message
-    message_details[i][group_name] = last_message 
+  else:
+    # Fails means check next 5 if deleted
+    print("entered else")
+    for j in range(5):
+      print(j)
+      if (len(get_html(group_name, number + j + 1)) - THRESHOLD >= 2000):
+        number = number + j + 1
+        message_details[user][group_name] = number
+        html = get_html(group_name, number)
+        return get_msg(html)
+    
+    print("already latest")
+    return 0
 
 
 THRESHOLD = len(get_html("SGBIGPURCHASES", 1))
-
-last_message = scrape(message_details)
 
 schedule.every(5).seconds.do(scrape, message_details)
 
@@ -63,4 +67,5 @@ last_message = scrape(message_details)
 
 while True:
   schedule.run_pending()
+  #print(last_message)
 
