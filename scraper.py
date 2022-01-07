@@ -1,4 +1,3 @@
-import schedule
 import requests
 from bs4 import BeautifulSoup
 
@@ -35,29 +34,29 @@ def scrape(message_details):
             message = poll(message_details, i, group_name, last_message, THRESHOLD)
             while (message != 0):
                 message = poll(message_details, i, group_name, message_details[i][group_name], THRESHOLD)
-            return get_msg(get_html(group_name, message_details[i][group_name] - 1))
+            #return get_msg(get_html(group_name, message_details[i][group_name] - 1))
 
 
-def get_update(message_details, previous):
+def get_update(message_details):
     print("entered update")
     msg_list = []
     for i in message_details:
         for key, value in message_details[i].items():
-            group_name = key
-            THRESHOLD = len(get_html(group_name, 1))
-            last_message = value
-            message = poll(message_details, i, group_name, last_message, THRESHOLD)
-            msg_list.append(message)
-            while (message != 0):
-              message = poll(message_details, i, group_name, message_details[i][group_name], THRESHOLD)
-              print("message here")
-              print(message)
-              if (message != 0):
-                msg_list.append(message)
-            print("msg_list here")
-            print(msg_list)
-            #msg_list.pop()
-            return msg_list
+          group_name = key
+          THRESHOLD = len(get_html(group_name, 1))
+          last_message = value
+          message = poll(message_details, i, group_name, last_message, THRESHOLD)
+          msg_list.append(message)
+          while (message != 0):
+            message = poll(message_details, i, group_name, message_details[i][group_name], THRESHOLD)
+            print("message here")
+            print(message)
+            if (message != 0):
+              msg_list.append(message)
+          print("msg_list here")
+          print(msg_list)
+          #msg_list.pop()
+        return msg_list
 
 
 def poll(message_details, user, group_name, number, THRESHOLD):
@@ -66,6 +65,8 @@ def poll(message_details, user, group_name, number, THRESHOLD):
     if (len(html) - THRESHOLD >= 2000):  # means valid message
         print(number, " is valid")
         number += 1
+        print("user and group_name below")
+        print(user, group_name)
         message_details[user][group_name] = number
         # format content and return
         return get_msg(html)
@@ -83,6 +84,7 @@ def poll(message_details, user, group_name, number, THRESHOLD):
 
         print("already latest")
         return 0
+
 
 # THRESHOLD = len(get_html("SGBIGPURCHASES", 1))
 
