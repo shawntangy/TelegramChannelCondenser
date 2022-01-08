@@ -14,15 +14,16 @@ bot.set_my_commands([
     BotCommand('addchannel', 'Adds Channel to subscription list'),
     BotCommand('viewchannel', 'View Currently Subscribed Channels'),
     BotCommand('initialize', 'Initialize and retrieve up to latest feed'),
-    BotCommand('getupdate', 'Update to latest feed')
+    BotCommand('getupdate', 'Update to latest feed'),
+    BotCommand('clear', 'removes all channels from the list')
 ])
 
 
 @bot.message_handler(commands=['start'])
 def start(message):
     """
-  Command that welcomes the user and configures the initial setup
-  """
+    Command that welcomes the user and configures the initial setup
+    """
     chat_id = message.chat.id
 
     if message.chat.type == 'private':
@@ -40,8 +41,8 @@ def start(message):
 
 def request_start(chat_id):
     """
-  Helper function to request user to execute command /start
-  """
+    Helper function to request user to execute command /start
+    """
     if chat_id not in channels:
         bot.send_message(chat_id=chat_id,
                          text='Please start the bot by sending /start')
@@ -52,8 +53,8 @@ def request_start(chat_id):
 @bot.message_handler(commands=['addchannel'])
 def add_channel(message):
     """
-  Command that adds channel to Channels list
-  """
+    Command that adds channel to Channels list
+    """
     chat_id = message.chat.id
 
     if chat_id not in channels:
@@ -73,13 +74,15 @@ def add_channel_name(message):
 def initialize(message):
     # Retrieve list of channels & find the last messages
     """
-  Command that initialize channel to latest message id
-  """
+    Command that initialize channel to latest message id
+    """
     chat_id = message.chat.id
 
     if chat_id not in channels:
         request_start(chat_id)
         return
+
+    bot.reply_to(message, "Initializing, please wait")
 
     if (channels[message.chat.id]):
         for group_name in channels[message.chat.id]:
@@ -90,6 +93,11 @@ def initialize(message):
             scraper.scrape(channels)
             # print(last_message)
 
+    bot.send_message(
+        chat_id=chat_id,
+        text="Initialization Done"
+    )
+
 
 @bot.message_handler(commands=['getupdate'])
 def get_update(message):
@@ -99,28 +107,46 @@ def get_update(message):
         request_start(chat_id)
         return
 
+    if not (channels[message.chat.id]):
+        channels_text = 'No Channels Subscribed to currently'
+
+        bot.send_message(
+            chat_id=chat_id,
+            text=channels_text,
+            parse_mode='MarkdownV2'
+        )
+
+        return
+
     if (channels[message.chat.id]):
         # for group_name in channels[message.chat.id]:
         # number = channels[message.chat.id][group_name] # 22
         print("message_details below")
         print(channels)
         msg_list = scraper.get_update(channels)
-        for i in msg_list:
-            if i == 0:
-                i = "No new Updates"
-            bot.send_message(
-                chat_id=chat_id,
-                text=i,
-                # parse_mode = 'MarkdownV2'
-                parse_mode='HTML'
-            )
+        print(msg_list)
+
+        content = "<b>Here are your messages:</b> \n\n"
+        for j in range(len(msg_list)):
+            for i in range(1, len(msg_list[j])):
+
+                if msg_list[j][i] == 0:
+                    content += "No new Updates" + " from " + msg_list[j][0] + "\n\n"
+                else:
+                    content += "From " + msg_list[j][0] + ": " + msg_list[j][i] + "\n\n"
+        bot.send_message(
+            chat_id=chat_id,
+            text=content,
+            # parse_mode = 'MarkdownV2'
+            parse_mode='HTML'
+        )
 
 
 @bot.message_handler(commands=['viewchannel'])
 def view_channels(message):
     """
-  Command that adds channel to Channels list
-  """
+    Command that adds channel to Channels list
+    """
     chat_id = message.chat.id
 
     if chat_id not in channels:
@@ -141,6 +167,23 @@ def view_channels(message):
         text=channels_text,
         parse_mode='MarkdownV2'
     )
+
+
+@bot.message_handler(commands=['clear'])
+def clear_channels(message):
+    """
+    Command that removes all channels from the list
+    """
+
+    chat_id = message.chat.id
+    if chat_id not in channels:
+        request_start(chat_id)
+        return
+
+    channel_cleared_text = 'Channel list cleared!'
+    channels[chat_id].clear()
+
+    bot.send_message(chat_id=chat_id, text=channel_cleared_text)
 
 
 bot.infinity_polling()

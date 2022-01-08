@@ -46,13 +46,13 @@ def get_update(message_details):
           THRESHOLD = len(get_html(group_name, 1))
           last_message = value
           message = poll(message_details, i, group_name, last_message, THRESHOLD)
-          msg_list.append(message)
+          msg_list.append([group_name, message])
           while (message != 0):
             message = poll(message_details, i, group_name, message_details[i][group_name], THRESHOLD)
             print("message here")
             print(message)
             if (message != 0):
-              msg_list.append(message)
+              msg_list.append([group_name, message])
           print("msg_list here")
           print(msg_list)
           #msg_list.pop()
