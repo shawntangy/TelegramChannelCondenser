@@ -1,6 +1,7 @@
 from database import past_messages
 import requests
 from bs4 import BeautifulSoup
+from difflib import SequenceMatcher
 
 
 # message_details = {"user1":
@@ -42,6 +43,18 @@ def scrape(message_details):
     past_messages[i] = pstmsg
 
 
+def similarity(msg_list, tmp_list, user):
+    for j in range(len(msg_list)):
+        for i in range(1, len(msg_list[j])):
+            a = msg_list[j][i]
+            if (a != 0):
+                for k in past_messages[user]:
+                    if (SequenceMatcher(None, str(a), str(k)).ratio() > 0.8):
+                        msg_list[j][i] = 0
+                        tmp_list.pop()
+    return tmp_list
+
+
 def get_update(message_details):
     print("entered update")
     msg_list = []
@@ -61,11 +74,15 @@ def get_update(message_details):
                 if (message != 0):
                     msg_list.append([group_name, message])
                     tmp_list.append(message)
-            print("msg_list here")
+            print("msg_list here1")
             print(msg_list)
             # msg_list.pop()
+            tmp_list = similarity(msg_list, tmp_list, i)
+            print("msg_list here2")
+            print(msg_list)
+            print("tmp_list below")
+            print(tmp_list)
             past_messages[i] = tmp_list
-        print(past_messages[i])
         return msg_list
 
 
