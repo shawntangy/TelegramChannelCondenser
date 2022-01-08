@@ -2,7 +2,7 @@ import scraper
 import os
 import telebot
 from telebot.types import BotCommand
-from database import channels
+from database import channels, past_messages
 
 # ChannelCondenser_bot
 API_KEY = os.getenv('API_KEY')
@@ -35,7 +35,7 @@ def start(message):
 
     # Initialise Cart
     channels[chat_id] = dict()
-
+    past_messages[chat_id] = dict()
     bot.reply_to(message, message_text)
 
 
@@ -85,13 +85,13 @@ def initialize(message):
     bot.reply_to(message, "Initializing, please wait")
 
     if (channels[message.chat.id]):
-        for group_name in channels[message.chat.id]:
-            print(group_name)
-            # THRESHOLD = len(scraper.get_html(group_name, 1))
-            print("message_details below")
-            print(channels)
-            scraper.scrape(channels)
-            # print(last_message)
+        # for group_name in channels[message.chat.id]:
+        # print(group_name)
+        # THRESHOLD = len(scraper.get_html(group_name, 1))
+        print("message_details below")
+        print(channels)
+        scraper.scrape(channels)
+        # print(last_message)
 
     bot.send_message(
         chat_id=chat_id,

@@ -7,3 +7,4 @@ list {
 }
 '''
 channels = {}
+past_messages = {}

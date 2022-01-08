@@ -1,3 +1,4 @@
+from database import past_messages
 import requests
 from bs4 import BeautifulSoup
 
@@ -25,6 +26,7 @@ def get_msg(html):
 
 # to retrieve actual content
 def scrape(message_details):
+    pstmsg = []
     print("entered scrape")
     for i in message_details:
         for key, value in message_details[i].items():
@@ -32,30 +34,38 @@ def scrape(message_details):
             THRESHOLD = len(get_html(group_name, 1))
             last_message = value
             message = poll(message_details, i, group_name, last_message, THRESHOLD)
+            pstmsg.append(message)
             while (message != 0):
                 message = poll(message_details, i, group_name, message_details[i][group_name], THRESHOLD)
-            #return get_msg(get_html(group_name, message_details[i][group_name] - 1))
+                pstmsg.append(message)
+
+    past_messages[i] = pstmsg
 
 
 def get_update(message_details):
     print("entered update")
     msg_list = []
     for i in message_details:
+        tmp_list = past_messages[i]
         for key, value in message_details[i].items():
-          group_name = key
-          THRESHOLD = len(get_html(group_name, 1))
-          last_message = value
-          message = poll(message_details, i, group_name, last_message, THRESHOLD)
-          msg_list.append([group_name, message])
-          while (message != 0):
-            message = poll(message_details, i, group_name, message_details[i][group_name], THRESHOLD)
-            print("message here")
-            print(message)
-            if (message != 0):
-              msg_list.append([group_name, message])
-          print("msg_list here")
-          print(msg_list)
-          #msg_list.pop()
+            group_name = key
+            THRESHOLD = len(get_html(group_name, 1))
+            last_message = value
+            message = poll(message_details, i, group_name, last_message, THRESHOLD)
+            msg_list.append([group_name, message])
+            tmp_list.append(message)
+            while (message != 0):
+                message = poll(message_details, i, group_name, message_details[i][group_name], THRESHOLD)
+                print("message here")
+                print(message)
+                if (message != 0):
+                    msg_list.append([group_name, message])
+                    tmp_list.append(message)
+            print("msg_list here")
+            print(msg_list)
+            # msg_list.pop()
+            past_messages[i] = tmp_list
+        print(past_messages[i])
         return msg_list
 
 
@@ -84,7 +94,6 @@ def poll(message_details, user, group_name, number, THRESHOLD):
 
         print("already latest")
         return 0
-
 
 # THRESHOLD = len(get_html("SGBIGPURCHASES", 1))
 
